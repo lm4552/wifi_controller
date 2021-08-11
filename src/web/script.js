@@ -82,7 +82,15 @@ function build_interval(iv,io ){
 		
 
 	let ttl2 = d.cE('h3');
-	ttl2.appendChild( d.cTN('Interval ' +iv));
+	if( (SCHEDULE[io])[iv].valid){
+		if(CURRENT_TIME > (SCHEDULE[io])[iv].start && CURRENT_TIME <  (SCHEDULE[io])[iv].end){
+			ttl2.appendChild( d.cTN('Interval ' +iv+ ' ACTIVE'));
+		}else{
+			ttl2.appendChild( d.cTN('Interval ' +iv));
+		}
+	}else{
+		ttl2.appendChild( d.cTN('Interval ' +iv));
+	}
 	iv_div.aC(ttl2);
 
 	let t = d.cE('table');
