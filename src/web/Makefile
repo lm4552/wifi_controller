@@ -1,5 +1,5 @@
 
-all: css html js 
+all: css html js html_config
 
 css:
 	@ echo "creating style.h from style.css..."
@@ -63,6 +63,30 @@ js:
 
 	@ echo "done!"
 	@ echo ""
+
+html_config:
+	@ echo "creating html_config.h from config.html..."
+
+	@ sed ':a;N;$$!ba;s/\n//g' config.html > config_temp.html
+	@ sed -i -e "s/\\\\'/\\\\\\\'/g" -e 's/"/\\"/g'  config_temp.html 
+	@ #-e 's/\//\\\//g'
+
+	@ echo "#ifndef HTML_CONFIG_H_" > ./html_config.h
+	@ echo "#define HTML_CONFIG_H_" >> ./html_config.h
+	@ echo "const char* html_config = " >> ./html_config.h
+
+	@ sed -i 's/^/\"/' config_temp.html
+	@ sed -i 's/$$/\";/' config_temp.html
+
+	@ cat 'config_temp.html' >> ./html_config.h
+	@ echo "#endif" >> ./html_config.h
+
+	@ rm config_temp.html
+
+	@ echo "done!"
+	@ echo ""
+
+
 
 clean:
 	rm -f *.h 

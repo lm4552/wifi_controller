@@ -13,8 +13,9 @@
 
 // Include minified HTML,CSS and Javascript
 #include "src/web/style.h"
-#include "src/web/html.h"
 #include "src/web/script.h"
+#include "src/web/html.h"
+#include "src/web/html_config.h"
 
 
 #define DEBUG
@@ -47,6 +48,8 @@ const uint8_t PIN_LAYOUT_IOS[] = {14};
 #define NTP_SERVER "de.pool.ntp.org"
 #define GTM_OFFSET_SEC 7200
 #define DAYLIGHT_OFFSET_SEC 0
+
+#define DEVICE_NAME "WiFi Controller"
 
 // pwm states 
 enum{
@@ -111,23 +114,26 @@ BRIGHTNESS_TYPE values_IOs[NUM_IOS] = {0};
 
 void setup() {
 
-	deviceStatus = CONFIGURED;
+	//TODO read wifi config here 
+	//deviceStatus = CONFIGURED;
 
 	DebugBegin(115200);
 	DebugPrintln(String(MAX_BRIGHTNESS));
+
+	init_SSLcert();
+	delay(2000);
 	
 	switch(deviceStatus){
 
 		case NOT_YET_CONFIGURED:
 
-			empty_func();
+			setup_wifi_ap();
+
+			init_httpsServer_configuration();
+
 			break;
 
 		case CONFIGURED:
-
-			init_SSLcert();
-
-			delay(2000);
 
 			connect_wifi();
 
@@ -140,7 +146,6 @@ void setup() {
 			//read flash and config
 
 			initialize_IOs();
-
 			// setup IOs
 			break;
 	}
@@ -152,7 +157,15 @@ void setup() {
 
 		case NOT_YET_CONFIGURED:
 			// loop config server
-			empty_func();
+			if (wifi_cfg.is_set){
+				secureServer->loop();
+				delay(1000);
+				secureServer->loop();
+				delay(100);
+				ESP.restart();
+			}else{
+				secureServer->loop();
+			}
 			break;
 
 		case CONFIGURED:
@@ -193,6 +206,27 @@ void setup() {
 
 	}
 
+}
+
+
+void setup_wifi_ap(){
+
+    DebugPrintln("Setting AP (Access Point)…");
+    DebugPrintln(WiFi.softAP(DEVICE_NAME));
+
+	delay(1000);
+
+    IPAddress local_IP(192,168,1,1);
+    IPAddress gateway(192,168,1,1);
+    IPAddress subnet(255,255,255,0);
+    DebugPrintln(WiFi.softAPConfig(local_IP, gateway, subnet));
+
+    delay(1000);
+  
+    IPAddress IP = WiFi.softAPIP();
+    DebugPrintln("AP IP address: ");
+    DebugPrintln(IP);
+    
 }
 
 
@@ -364,9 +398,7 @@ void init_SSLcert(){
 		key_der_len
 		);
    
-    DebugPrintln("Certificate read with success");
-
-    secureServer = new httpsserver::HTTPSServer(cert);
+    DebugPrintln("Certificate read with success"); 
 }
 
 void print_schedule(){
@@ -513,7 +545,64 @@ String get_js_variables(){
 }
 
 
+void init_httpsServer_configuration(){
+
+	secureServer = new httpsserver::HTTPSServer(cert);
+
+   	httpsserver::ResourceNode * nodeRoot = new httpsserver::ResourceNode("/", "GET", &handleRootConfiguration);
+    httpsserver::ResourceNode * nodePost  = new httpsserver::ResourceNode("/", "POST", &handlePostConfiguration);
+	
+    secureServer->registerNode(nodeRoot);
+    secureServer->registerNode(nodePost);
+   
+    secureServer->start();
+     
+    if (secureServer->isRunning()) {
+      DebugPrintln("Server ready.");
+    }
+
+}
+
+
+void handleRootConfiguration(httpsserver::HTTPRequest * req, httpsserver::HTTPResponse * res){
+
+	String response = 	html_config;
+	response.replace("<link rel=\"stylesheet\" href=\"style.css\">", style );
+	response.replace("REPLACE_DEVICE_NAME_REPLACE", String(DEVICE_NAME));
+	res->println(response);
+}
+
+void handlePostConfiguration(httpsserver::HTTPRequest * req, httpsserver::HTTPResponse * res){
+	DebugPrintln("handlePostConfiguration");
+	DebugPrintln(req->getContentLength());
+
+	const size_t capacity = req->getContentLength();
+	byte buffer[capacity];
+	req->readChars((char*)buffer,capacity);
+	String str_json = String((char*)buffer);
+
+	DebugPrintln(str_json);
+
+	int pos = str_json.indexOf("{\"ssid\":\"")+9;
+	int pos2 = str_json.indexOf("\",\"pw\":\"",pos);
+	int pos3 = str_json.indexOf("\"}",pos2+9);
+	str_json.substring(pos,pos2).toCharArray(wifi_cfg.ssid,32);
+	str_json.substring(pos2+8,pos3).toCharArray(wifi_cfg.password,32);
+	wifi_cfg.is_set = true;
+
+	DebugPrintln(wifi_cfg.ssid);
+	DebugPrintln(wifi_cfg.password);
+
+	res->setHeader("Content-Type","text/plain");
+	res->println("Success!");
+	return;
+}
+
+
+
 void init_httpsServer(){
+
+	secureServer = new httpsserver::HTTPSServer(cert);
 
     httpsserver::ResourceNode * nodeRoot = new httpsserver::ResourceNode("/", "GET", &handleRoot);
     httpsserver::ResourceNode * nodePost404  = new httpsserver::ResourceNode("", "POST", &handlePost);
@@ -545,6 +634,7 @@ void handleRoot(httpsserver::HTTPRequest * req, httpsserver::HTTPResponse * res)
 	temp.replace("<link rel=\"stylesheet\" href=\"style.css\">", style );
 	temp.replace("<script src=\"script.js\"></script>",script );
 	temp.replace("<script src=\"variables.js\"></script>",variables );
+	temp.replace("REPLACE_DEVICE_NAME_REPLACE",String(DEVICE_NAME));
 	res->println(temp);
 	return;
 }

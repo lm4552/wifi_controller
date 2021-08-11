@@ -1,0 +1,38 @@
+<!DOCTYPE html><html> 
+<script language="javascript" type="text/javascript"> 
+function configClick(){ 
+	var r = new XMLHttpRequest();
+	r.open("POST", window.location.href);
+	r.setRequestHeader("Accept", "application/json");
+	r.setRequestHeader("Content-Type", "application/json");
+
+	r.onreadystatechange = function () {
+	if (r.readyState === 4) {
+		co.log(r.status);
+		co.log(r.responseText);
+	}
+    document.getElementById("loader_wrapper").className ="hide"; 
+	let body = document.getElementsByTagName('body')[0].innerHTML ='<br><br><hr>The SSID and password has been set. The device will now reboot and connect to the specified Access Point!<hr>';
+	};
+
+    var data = {};
+    data.ssid =  document.getElementById("ssid").value; 
+    data.pw =  document.getElementById("pw").value;
+    document.getElementById("loader_wrapper").className =""; 
+    r.send(JSON.stringify(data));
+}
+</script>
+<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="style.css">
+
+<body>
+<h1> REPLACE_DEVICE_NAME_REPLACE </h1>
+SSID: <input style="width: 15%;" type="text" id="ssid" name="ssid"  > 
+<br>
+Password: <input style="width: 15%;" type="password" id="pw" name="pw" >  
+<br>
+<input type="button" value="Apply" onclick="configClick()"/> 
+<div id="loader_wrapper" class="hide"><div id="loader"></div></div>
+</body></html>
+
+
