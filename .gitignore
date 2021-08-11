@@ -1,0 +1,5 @@
+certs/*.der
+certs/*.h
+certs/*.pem
+src/web/*.h
+
