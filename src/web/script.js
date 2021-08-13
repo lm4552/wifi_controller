@@ -126,6 +126,44 @@ function build_interval(iv,io ){
 	tf_s.className = 'end_time';
 	c.appendChild(df_s);
 	c.appendChild(tf_s);
+
+	r = t.iR();
+	c = r.insertCell();
+	c.appendChild(d.cTN('Repeat'));
+	c = r.insertCell();
+	df_s = d.cE('input');
+	df_s.type = 'checkbox';
+	df_s.checked = (SCHEDULE[io])[iv].repeat;
+	df_s.className = 'repeat';
+	c.appendChild(df_s);
+	c.appendChild(d.cTN(' after '));
+	tf_s = d.cE('input');
+	tf_s.type = 'number';
+	tf_s.min = 0;
+	tf_s.max = 840;
+	tf_s.size = 2;
+	tf_s.value = (SCHEDULE[io])[iv].repeat == true  ? new Date( ((SCHEDULE[io])[iv].delta_repetition *1000)  ).getUTCHours(): 0;
+	tf_s.className = 'repeat_time_hours';
+	c.appendChild(tf_s);
+	c.appendChild(d.cTN(' h '));
+	tf_s = d.cE('input');
+	tf_s.type = 'number';
+	tf_s.min = 0;
+	tf_s.max = 60;
+	tf_s.size = 2;
+	tf_s.value = (SCHEDULE[io])[iv].repeat == true  ? new Date( ((SCHEDULE[io])[iv].delta_repetition *1000) ).getUTCMinutes(): 0;
+	tf_s.className = 'repeat_time_minutes';
+	c.appendChild(tf_s);
+	c.appendChild(d.cTN(' m '));
+	tf_s = d.cE('input');
+	tf_s.type = 'number';
+	tf_s.min = 0;
+	tf_s.max = 60;
+	tf_s.size = 2;
+	tf_s.value = (SCHEDULE[io])[iv].repeat == true  ? new Date( ((SCHEDULE[io])[iv].delta_repetition *1000)  ).getUTCSeconds(): 0;
+	tf_s.className = 'repeat_time_seconds';
+	c.appendChild(tf_s);
+	c.appendChild(d.cTN(' s '));
 	
 
 	r = t.iR();
@@ -218,7 +256,7 @@ function change_interval(iv,io){
 
 	let iv_div = d.gEBI('io_'+ io + '_iv_'+iv);
 
-	let class_names = ['start_date','start_time','end_date','end_time','type']; 
+	let class_names = ['start_date','start_time','end_date','end_time','type','repeat','repeat_time_hours','repeat_time_minutes','repeat_time_seconds']; 
 	let elems_lists = [];
 	for(let i = 0; i < class_names.length; i++){
 		elems_lists.push(d.getElementsByClassName(class_names[i]));
@@ -237,6 +275,8 @@ function change_interval(iv,io){
 	co.log(elems_lists[0].valueAsDate.valueOf());
 	co.log(elems_lists[1].valueAsDate.valueOf());
 	co.log(elems_lists[4].selectedIndex+1);
+	co.log(elems_lists[5].value);
+	co.log(elems_lists[6].value);
 
 	var url = window.location.href;
 
@@ -262,6 +302,8 @@ function change_interval(iv,io){
 	data.start = (elems_lists[0].valueAsDate.valueOf()+elems_lists[1].valueAsDate.valueOf() + ((new Date()).getTimezoneOffset()*60*1000) ).toString();
 	data.end= (elems_lists[2].valueAsDate.valueOf()+elems_lists[3].valueAsDate.valueOf() + ((new Date()).getTimezoneOffset()*60*1000) ).toString();
 	data.type = (mapping[elems_lists[4].selectedIndex]).toString();
+	data.repeat = elems_lists[5].checked.toString();
+	data.delta_repetition = ((parseInt(elems_lists[6].value)*60*60) + (parseInt(elems_lists[7].value)*60)+ parseInt(elems_lists[8].value)).toString();
 
 	data.start = data.start.substring(0,data.start.length-3);
 	data.end = data.end.substring(0,data.end.length-3);

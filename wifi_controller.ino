@@ -85,11 +85,12 @@ struct interval{
 	time_t start;
 	time_t end;
 	uint8_t state_type = UNDEFINED_STATE;
+	time_t delta_repetition;
+	bool repeat = false;
 };
 
 struct schedule {
 	interval intv[NUM_INTERVALS];
-	bool repeat = false;
 	uint8_t io_type = UNDEFINED_IO;
 	BRIGHTNESS_TYPE maximum_brightness = MAX_BRIGHTNESS;
 	uint8_t operation_mode = UNDEFINED_MODE;
@@ -173,8 +174,8 @@ void setup() {
 			secureServer->loop();
 			// loop io updates
 			update_IOs();
-
-			//DebugPrintln("updated IOs");
+			// check if intervals should be repeated
+			update_interval_repetitions();
 
 			refresh_time();
 			break;
@@ -409,7 +410,6 @@ void print_schedule(){
 
 	for(int i = 0; i< NUM_IOS;i++){
 		DebugPrintln("------ \n io #"+ String(i));
-		DebugPrintln("repeat: " + String(s[i].repeat) );
 		DebugPrintln("Input type: " + String(s[i].io_type) );
 		DebugPrintln("Max Brighntess: " + String(s[i].maximum_brightness) );
 		DebugPrintln("operation_mode: " + String(s[i].operation_mode) );
@@ -419,9 +419,28 @@ void print_schedule(){
 			DebugPrintln("...... \n intv #"+ String(j));
 			DebugPrintln("(start,end): (" +String(s[i].intv[j].start)+","+String(s[i].intv[j].start)+ ")");
 			DebugPrintln("intv type: "+ String(s[i].intv[j].state_type)); 
+			DebugPrintln("repeat: " + String(s[i].intv[j].repeat) +" ,delta: "+  s[i].intv[j].delta_repetition);
 		}
 	} 
 	DebugPrintln("######");
+} 
+
+void update_interval_repetitions(){
+
+	time_t current_time = time(nullptr);
+
+	for(int i = 0; i< NUM_IOS;i++){
+
+		for(int j = 0; j < NUM_INTERVALS; j++){
+
+			while( (s[i].intv[j].start < current_time) && (s[i].intv[j].end < current_time) && s[i].intv[j].repeat){
+				time_t old_start = s[i].intv[j].start;
+				s[i].intv[j].start = s[i].intv[j].end + s[i].intv[j].delta_repetition;
+				s[i].intv[j].end = (2*s[i].intv[j].end) + s[i].intv[j].delta_repetition - old_start;
+				print_schedule();
+			}
+		}
+	} 
 } 
 
 void empty_func(){
@@ -450,12 +469,12 @@ void refresh_time(){
 }
 
 
-void parse_interval_config_json(String str_json,time_t* val_io,time_t* val_iv,time_t* val_start,time_t* val_end,time_t* val_type){
+void parse_interval_config_json(String str_json,uint8_t* val_io,uint8_t* val_iv,time_t* val_start,time_t* val_end,uint8_t* val_type, bool* val_repeat,time_t* val_delta){
 
 	DebugPrintln( str_json);
 	int current_parsing_pos = str_json.indexOf("{", current_parsing_pos) +1;
 
-	for (int i = 0; i< 5; i++){
+	for (int i = 0; i< 7; i++){
 
 		current_parsing_pos = str_json.indexOf("\"", current_parsing_pos) +1;
 
@@ -498,6 +517,10 @@ void parse_interval_config_json(String str_json,time_t* val_io,time_t* val_iv,ti
 			}else{
 				*val_type = UNDEFINED_STATE;
 			}
+		}else if (current_key.equals("repeat")){
+			*val_repeat = current_value.equals("true") ? true :false;
+		}else if (current_key.equals("delta_repetition")){
+			*val_delta = current_value.toInt();
 		}
 	}
 }
@@ -509,6 +532,7 @@ String get_js_variables(){
 
 	DebugPrintln("current_time:!!!");
 	DebugPrintln(current_time);
+	DebugPrintln(s[0].intv[0].delta_repetition);
 
 	String variables = 	"<script> \
 						NUM_IOS="+String(NUM_IOS)+"; \
@@ -520,7 +544,12 @@ String get_js_variables(){
 		variables += "["; 
 		for(int j = 0; j < NUM_INTERVALS; j++){
 			if (s[i].intv[j].state_type != UNDEFINED_STATE){
-				variables += "{valid: true, start: "+String(s[i].intv[j].start)+", end: "+String(s[i].intv[j].end)+" ,type:  "+String(s[i].intv[j].state_type)+" }"; 
+				variables += "{valid: true, start: "+String(s[i].intv[j].start)
+							+", end: "+String(s[i].intv[j].end)
+							+" ,type:  "+String(s[i].intv[j].state_type)
+							+" ,repeat:  "+String(s[i].intv[j].repeat)
+							+" ,delta_repetition:  "+String(s[i].intv[j].delta_repetition)
+							+" }"; 
 			}else{
 				variables += "{valid: false }"; 
 			}
@@ -676,13 +705,17 @@ void handlePost(httpsserver::HTTPRequest * req, httpsserver::HTTPResponse * res)
 	req->readChars((char*)buffer,capacity);
 	String str_json = String((char*)buffer);
 
-	time_t val_io, val_iv, val_start, val_end, val_type; 
-	parse_interval_config_json(str_json, &val_io, &val_iv, &val_start, &val_end, &val_type);
+	uint8_t val_io, val_iv, val_type;
+	bool val_repeat;
+	time_t  val_start, val_end, val_delta; 
+	parse_interval_config_json(str_json, &val_io, &val_iv, &val_start, &val_end, &val_type, &val_repeat, &val_delta);
 
 	if (val_io < NUM_IOS && val_iv < NUM_INTERVALS){
 		s[val_io].intv[val_iv].start = val_start;
 		s[val_io].intv[val_iv].end = val_end;
 		s[val_io].intv[val_iv].state_type = val_type;
+		s[val_io].intv[val_iv].repeat = val_repeat;
+		s[val_io].intv[val_iv].delta_repetition = val_delta;
 		s[val_io].operation_mode = AUTOMATIC_MODE;
 		s[val_io].io_type = PWM_IO;
 	}else{
