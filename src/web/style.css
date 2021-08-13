@@ -114,6 +114,9 @@ hr{
 	h2{
 		width:auto;
 	}
+	#container div {
+		margin:auto;
+	}
 }
 
 
