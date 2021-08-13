@@ -6,6 +6,7 @@
 
 #include <WiFi.h>
 #include "time.h"
+#include <EEPROM.h>
 
 // Include certificate data (see note above)
 #include "certs/cert.h"
@@ -29,6 +30,8 @@
 	#define DebugPrint(a) 
 	#define DebugBegin(a) 
 #endif
+
+#define RESET false
 
 const uint8_t PIN_LAYOUT_IOS[] = {14};
 #define NUM_IOS sizeof(PIN_LAYOUT_IOS) // maximum of 8 
@@ -115,6 +118,12 @@ BRIGHTNESS_TYPE values_IOs[NUM_IOS] = {0};
 
 void setup() {
 
+	if (RESET){
+		save_configuration();
+	}else{
+		restore_configuration();
+	}
+
 	//TODO read wifi config here 
 	//deviceStatus = CONFIGURED;
 
@@ -186,6 +195,47 @@ void setup() {
 	//print_schedule();
  	//delay(200);
  	//DebugPrintln("main_loop!");
+
+ }
+
+
+ void restore_configuration(){
+
+	DebugPrintln("restore config");
+
+	int size_bytes = sizeof(wifi_config);
+	size_bytes += sizeof(schedule); 
+
+	EEPROM.begin(size_bytes);
+	int adr = 0;
+
+	EEPROM.get(adr,wifi_cfg);
+	adr += sizeof(wifi_config);
+	EEPROM.get(adr,s);
+
+	EEPROM.end();
+
+	if (wifi_cfg.is_set){
+		deviceStatus = CONFIGURED;
+	}
+ }
+
+ void save_configuration(){
+
+	DebugPrintln("save config");
+
+	int size_bytes = sizeof(wifi_config);
+	size_bytes += sizeof(schedule); 
+
+	EEPROM.begin(size_bytes);
+	int adr = 0;
+
+	EEPROM.put(adr,wifi_cfg);
+	adr += sizeof(wifi_config);
+	EEPROM.put(adr,s);
+
+	EEPROM.commit();
+	EEPROM.end();
 
  }
 
@@ -622,6 +672,8 @@ void handlePostConfiguration(httpsserver::HTTPRequest * req, httpsserver::HTTPRe
 	DebugPrintln(wifi_cfg.ssid);
 	DebugPrintln(wifi_cfg.password);
 
+	save_configuration();
+
 	res->setHeader("Content-Type","text/plain");
 	res->println("Success!");
 	return;
@@ -691,6 +743,8 @@ void handlePostBrightness(httpsserver::HTTPRequest * req, httpsserver::HTTPRespo
 	DebugPrintln(maxBrightness);
 	s[io].maximum_brightness = maxBrightness;
 
+	save_configuration();
+
 	res->setHeader("Content-Type","text/plain");
 	res->println("Success!");
 	return;
@@ -721,6 +775,8 @@ void handlePost(httpsserver::HTTPRequest * req, httpsserver::HTTPResponse * res)
 	}else{
 		DebugPrintln("Channel or Interval out of bounds!!!");
 	}
+
+	save_configuration();
 
 	res->setHeader("Content-Type","text/plain");
 	res->println("Success!");
