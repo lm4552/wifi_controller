@@ -142,7 +142,7 @@ function build_interval(iv,io ){
 	tf_s.min = 0;
 	tf_s.max = 840;
 	tf_s.size = 2;
-	tf_s.value = (SCHEDULE[io])[iv].repeat == true  ? new Date( ((SCHEDULE[io])[iv].delta_repetition *1000)  ).getUTCHours(): 0;
+	tf_s.value = (SCHEDULE[io])[iv].repeat == true  ?  ((SCHEDULE[io])[iv].delta_repetition - new Date( (SCHEDULE[io])[iv].delta_repetition *1000).getUTCSeconds()  - (new Date( (SCHEDULE[io])[iv].delta_repetition *1000) ).getUTCMinutes()*60)/60/60 : 0;
 	tf_s.className = 'repeat_time_hours';
 	c.appendChild(tf_s);
 	c.appendChild(d.cTN(' h '));

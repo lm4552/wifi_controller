@@ -85,10 +85,10 @@ enum{
 };
 
 struct interval{
-	time_t start;
-	time_t end;
+	time_t start = 0;
+	time_t end = 0;
 	uint8_t state_type = UNDEFINED_STATE;
-	time_t delta_repetition;
+	time_t delta_repetition = 0;
 	bool repeat = false;
 };
 
@@ -114,16 +114,11 @@ schedule s[NUM_IOS];
 uint8_t deviceStatus = NOT_YET_CONFIGURED;
 wifi_config wifi_cfg;
 time_t lastNTPconnectTime; 
-BRIGHTNESS_TYPE values_IOs[NUM_IOS] = {0};
+BRIGHTNESS_TYPE values_IOs[NUM_IOS] = {127};
 
 void setup() {
 
-	if (RESET){
-		save_configuration();
-	}else{
-		restore_configuration();
-	}
-
+	
 	//TODO read wifi config here 
 	//deviceStatus = CONFIGURED;
 
@@ -132,7 +127,14 @@ void setup() {
 
 	init_SSLcert();
 	delay(2000);
-	
+
+	if (RESET){
+		save_configuration();
+	}else{
+		restore_configuration();
+	}
+
+
 	switch(deviceStatus){
 
 		case NOT_YET_CONFIGURED:
@@ -149,7 +151,7 @@ void setup() {
 
 			init_time();
 
-			offline_config();
+			//offline_config();
 
 			init_httpsServer();
 
@@ -204,7 +206,7 @@ void setup() {
 	DebugPrintln("restore config");
 
 	int size_bytes = sizeof(wifi_config);
-	size_bytes += sizeof(schedule); 
+	size_bytes += sizeof(schedule) * NUM_IOS; 
 
 	EEPROM.begin(size_bytes);
 	int adr = 0;
@@ -225,7 +227,7 @@ void setup() {
 	DebugPrintln("save config");
 
 	int size_bytes = sizeof(wifi_config);
-	size_bytes += sizeof(schedule); 
+	size_bytes += sizeof(schedule ) * NUM_IOS; 
 
 	EEPROM.begin(size_bytes);
 	int adr = 0;
@@ -236,7 +238,6 @@ void setup() {
 
 	EEPROM.commit();
 	EEPROM.end();
-
  }
 
  void initialize_IOs(){
@@ -284,6 +285,7 @@ void setup_wifi_ap(){
 void initialize_PWM(uint8_t ind){
     ledcAttachPin(PIN_LAYOUT_IOS[ind], ind);
     ledcSetup(ind, PWM_FREQ, PWM_RES);
+	values_IOs[ind] = 127;
 }
 
 void update_IOs(){
@@ -772,6 +774,7 @@ void handlePost(httpsserver::HTTPRequest * req, httpsserver::HTTPResponse * res)
 		s[val_io].intv[val_iv].delta_repetition = val_delta;
 		s[val_io].operation_mode = AUTOMATIC_MODE;
 		s[val_io].io_type = PWM_IO;
+		initialize_IOs();
 	}else{
 		DebugPrintln("Channel or Interval out of bounds!!!");
 	}
