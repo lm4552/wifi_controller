@@ -2,9 +2,13 @@
 # WiFi Controller
 
 This a generic project to control GPIOs of an ESP32 development board from a webinterface. It allows to schedule time intervals per GPIO channel in different operating modes: 
+
 - The current operating modes allow to dimm and control devices via PWM, as well as disabling and enabling channels completely. 
+
 - Intervals can be repeated at arbitrary time intervals. 
+
 - Its also possible to define maximum values for PWM channels. 
+
 - The settings are always saved to the flash of the ESP32 and will be recovered in case of a power failure. 
 
 - In addition to that, the WiFI configuration of the ESP32 will by default be configured in Access Point(AP) mode. After connecting to the WiFI Controller AP and setting the SSID and password, it will automatically reboot and make the webinterface available to the local network. 
