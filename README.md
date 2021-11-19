@@ -1,13 +1,15 @@
 
 # Aquarium Light
 
-For using the <a href="#/pages/projects/wifi_controller/readme.html">WiFi Controller</a> project for aquarium lights I slightly modified the [wifi_conroller main git branch ](https://github.com/lm4552/wifi_controller/tree/aquarium_light) and placed it in a new [aquarium_light git branch ](https://github.com/lm4552/wifi_controller/tree/aquarium_light).
-You can also find some details about the hardware here.
+To use the <a href="#/pages/projects/wifi_controller/readme.html">WiFi Controller</a> project for aquarium lights I slightly modified the [wifi_controller main git branch ](https://github.com/lm4552/wifi_controller/tree/master) and placed it in a new [aquarium_light git branch ](https://github.com/lm4552/wifi_controller/tree/aquarium_light).
+For aquarium lights each GPIO channel of the controller gets attached to a specific LED channel by an XY-MOS module. The hardware setup, schematic, customized webinterface and more are shown below. 
 
+
+[See project on GitHub](https://github.com/lm4552/wifi_controller/tree/aquarium_light)
 
 ## Webinterface
 
-available soon
+*available soon*
 
 ## Schematic 
 
