@@ -17,6 +17,7 @@ For aquarium lights each GPIO channel of the controller gets attached to a speci
 
 ## Images
 
+<div>
 <div class="img_frame">
 
 |![](./img/img1.jpg)|
@@ -28,4 +29,5 @@ For aquarium lights each GPIO channel of the controller gets attached to a speci
 |![](./img/img2.jpg)|
 |---|
 |Circuit with all modules wired up|
+</div>
 </div>
