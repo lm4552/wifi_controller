@@ -23,6 +23,24 @@ The project is based on an old project which I completely refactored. Therefore,
 
 [See project on GitHub](https://github.com/lm4552/wifi_controller)
 
+### Images
+<div>
+<div class="img_frame">
+
+|![](./img/img1.jpg)|
+|---|
+|Webinterface on a smartphone|
+</div>
+<div class="img_frame">
+
+|![](./img/img2.png)|
+|---|
+|Webinterface on a linux computer|
+</div>
+</div></br>
+
+
+
 ### Illustration
 <div>
 <div class="img_frame">
