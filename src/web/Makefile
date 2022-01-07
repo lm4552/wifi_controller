@@ -46,7 +46,7 @@ js:
 	@ echo "creating script.h from script.js..."
 
 	@ sed ':a;N;$$!ba;s/\n//g' script.js > script_temp.js
-	@ sed -i -e 's/"/\\"/g'  -e "s/\\\\xa0/\\\\\\\\\\\\\xa0/g"  script_temp.js 
+	@ sed -i -e 's/"/\\"/g'  -e "s/\\\\xa0/\\\\\\\\\\\\\xa0/g" -e "s/;/;\\\n /g" script_temp.js 
 	@ #-e "s/\\\\'/\\\\\\\\\\\\\\\'/g" -e 's/\s{2,}/\s/g'
 
 	@ echo "#ifndef SCRIPT_H_" > ./script.h

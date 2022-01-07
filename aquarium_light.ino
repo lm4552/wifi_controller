@@ -36,7 +36,7 @@
 const uint8_t PIN_LAYOUT_IOS[] = {14};
 #define NUM_IOS sizeof(PIN_LAYOUT_IOS) // maximum of 8 
 
-#define NUM_INTERVALS 5
+#define NUM_INTERVALS 10
 
 #define PWM_FREQ 5000
 #define PWM_RES 8
@@ -52,7 +52,7 @@ const uint8_t PIN_LAYOUT_IOS[] = {14};
 #define GTM_OFFSET_SEC 7200
 #define DAYLIGHT_OFFSET_SEC 0
 
-#define DEVICE_NAME "WiFi Controller"
+#define DEVICE_NAME "Aquarium Light"
 
 // pwm states 
 enum{
