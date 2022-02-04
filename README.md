@@ -36,14 +36,35 @@ The brightness can be adjusted on a per LED channel basis to control the color t
 <div>
 <div class="img_frame">
 
+|![](./img/img6.jpg)|
+|---|
+|Aquarium light built from stainless steel profiles|
+</div>
+<div class="img_frame">
+
+|![](./img/img5.jpg)|
+|---|
+|Aquarium light from the side with only warm white LEDs on|
+</div><div class="img_frame">
+
+|![](./img/img7.jpg)|
+|---|
+|Bottom view of the light before sealing the glass pane with silicone|
+</div>
+</div>
+
+---
+<div>
+<div class="img_frame">
+
 |![](./img/img1.jpg)|
 |---|
-|Hardware inside the case|
+|Controller hardware inside the case|
 </div>
 <div class="img_frame">
 
 |![](./img/img2.jpg)|
 |---|
-|Circuit with all modules wired up|
+|Controller circuit with all modules wired up|
 </div>
 </div>
